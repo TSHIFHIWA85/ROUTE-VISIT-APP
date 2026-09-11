@@ -1,0 +1,12 @@
+{
+  "name": "Daily Route Visit",
+  "short_name": "Route Visit",
+  "start_url": "./daily_route_visit.html",
+  "display": "standalone",
+  "background_color": "#FAF3E7",
+  "theme_color": "#2B1B12",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
