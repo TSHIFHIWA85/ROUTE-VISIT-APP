@@ -1,7 +1,7 @@
 {
   "name": "Daily Route Visit",
   "short_name": "Route Visit",
-  "start_url": "./daily_route_visit.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#FAF3E7",
   "theme_color": "#2B1B12",
