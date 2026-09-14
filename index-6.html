@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Route Visit App Updater</title>
+<style>
+body{font-family:Arial,sans-serif;background:#FAF3E7;color:#332218;padding:20px;max-width:650px;margin:auto}
+.card{background:white;border:1px solid #D8C7A8;border-radius:10px;padding:18px}
+h1{font-size:22px}button{width:100%;padding:14px;margin-top:12px;border:0;border-radius:8px;background:#2B1B12;color:white;font-weight:bold}
+input{width:100%;padding:12px;margin-top:8px}
+#status{margin-top:14px;font-weight:bold}
+small{color:#6f6254}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>Daily Route Visit — Updater</h1>
+<p>Select your current <b>index.html</b>. This updater will add the new arrival-photo gate and outlet management without needing internet.</p>
+<input id="file" type="file" accept=".html,text/html">
+<button id="go">Update & Download index.html</button>
+<div id="status"></div>
+<small>Keep your current index.html as a backup before replacing it.</small>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function status(t){$('status').textContent=t;}
+
+$('go').onclick=async()=>{
+ const f=$('file').files[0];
+ if(!f){status('Please select your current index.html first.');return;}
+ let s=await f.text();
+ let changes=0;
+
+ function rep(a,b){
+   if(s.includes(a)){s=s.replace(a,b);changes++;return true;}
+   return false;
+ }
+
+ rep('</style>',`
+.arrival-card{border:2px solid var(--gold);background:#fffaf0}
+.arrival-status{padding:10px 12px;border-radius:8px;background:var(--paper);font-size:13px;font-weight:700;margin-bottom:10px}
+.arrival-status.ready{background:#e7f2e8;color:#3E6B47}
+.arrival-status.locked{background:#f8e5e1;color:var(--red)}
+.manage-list{max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.manage-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-bottom:1px solid var(--line);font-size:13px}
+.manage-row:last-child{border-bottom:0}.manage-name{font-weight:700;flex:1}
+.manage-type{font-size:10px;font-weight:700;padding:3px 7px;border-radius:12px;background:#fff;border:1px solid var(--line)}
+.danger-btn{background:var(--red);color:#fff;border:0;border-radius:6px;padding:7px 9px;font-size:11px;font-weight:700}
+.small-btn{background:var(--crust);color:#fff;border:0;border-radius:6px;padding:7px 9px;font-size:11px;font-weight:700}
+</style>`);
+
+rep('    </div>\n    <div class="card">\n      <h2>GPS Location</h2>',
+`    </div>
+    <div class="card arrival-card" id="arrivalCard">
+      <h2>📸 Arrival Check</h2>
+      <div class="arrival-status locked" id="arrivalStatus">🔒 Select the outlet and capture GPS first.</div>
+      <p style="font-size:12px;color:#8A7860;margin:0 0 8px;">When you arrive, take a clear photo of the front/outside of the outlet. You must complete this before starting the inside execution.</p>
+      <div class="photo-box" data-photo-key="arrival" id="box-arrival">
+        <span>Outside / Front Photo Required</span><br>
+        <label class="photo-btn"><span>📷</span> Take Arrival Photo
+          <input type="file" accept="image/*" capture="environment" class="hidden-file">
+        </label>
+      </div>
+    </div>
+    <div class="card">
+      <h2>GPS Location</h2>`);
+
+rep('      <div class="gps-status" id="addOutletStatus"></div>\n    </div>\n  </section>',
+`      <div class="gps-status" id="addOutletStatus"></div>
+    </div>
+    <div class="card">
+      <h2>Manage Outlet Directory</h2>
+      <p style="font-size:12px;color:#8A7860;margin-top:-6px;">Use this when an outlet is duplicated, incorrectly captured, closed, or changes between Family and Corporate.</p>
+      <label class="field-label">Select outlet to manage</label>
+      <select id="manageOutletSelect"><option value="">Select outlet...</option></select>
+      <div id="manageOutletDetails" class="hidden" style="margin-top:10px;">
+        <label class="field-label">Outlet type / status</label>
+        <select id="manageOutletType">
+          <option value="Family">Family</option><option value="Corporate">Corporate</option>
+          <option value="Closed">Closed</option><option value="Incorrect/Duplicate">Incorrect / Duplicate</option>
+        </select>
+        <div class="two-col" style="margin-top:10px;">
+          <button class="btn primary" type="button" id="makeCorporateBtn">🔄 Make Corporate</button>
+          <button class="btn gold" type="button" id="saveOutletTypeBtn">Save Type</button>
+        </div>
+        <button class="danger-btn block" type="button" id="deleteOutletBtn" style="width:100%;margin-top:10px;padding:11px;">🗑️ Delete Outlet</button>
+        <div class="gps-status" id="manageOutletStatus"></div>
+      </div>
+    </div>
+  </section>`);
+
+rep("const DEFAULT_STORES = [", "const DEFAULT_STORES = [");
+rep("].map(name => ({name, address:'', lat:'', lng:''}));", "].map(name => ({name, address:'', lat:'', lng:'', type:'Family'}));");
+
+rep("outlets.push({name, address:'', lat:'', lng:''});",
+    "outlets.push({name, address:'', lat:'', lng:'', type:'Family'});");
+
+rep("  let added = false;\n", """  outlets = outlets.map(o => ({
+    name:o.name || '', address:o.address || '', lat:o.lat || '', lng:o.lng || '', type:o.type || 'Family'
+  }));
+  let added = false;
+""");
+
+rep("  renderOutletSelect();\n  renderScheduleEditor();",
+    "  renderOutletSelect();\n  renderScheduleEditor();\n  renderManageOutletSelect();");
+
+rep("let photoState = {shelf:null, freezer:null, promo:null, competitor:null};",
+    "let photoState = {arrival:null, shelf:null, freezer:null, promo:null, competitor:null};");
+
+# Insert arrival functions before wirePhotoBox
+marker="function wirePhotoBox(key){"
+arrival=r"""
+let arrivalCompleteFlag = false;
+let arrivalOutletKey = '';
+
+function getOutletKey(){
+  const sel=document.getElementById('outletSelect')?.value || '';
+  if(sel==='__manual') return 'manual:'+(document.getElementById('outletManual')?.value.trim()||'');
+  return sel;
+}
+function arrivalComplete(){
+  return !!(getOutletName() && document.getElementById('gpsLat').value && document.getElementById('gpsLng').value &&
+    photoState.arrival && arrivalOutletKey===getOutletKey());
+}
+function updateArrivalGate(){
+  const status=document.getElementById('arrivalStatus');
+  if(!status) return;
+  if(!getOutletName()){arrivalCompleteFlag=false;status.className='arrival-status locked';status.textContent='🔒 Select the outlet first.';return;}
+  if(!document.getElementById('gpsLat').value || !document.getElementById('gpsLng').value){
+    arrivalCompleteFlag=false;status.className='arrival-status locked';status.textContent='📍 Capture your GPS before taking the arrival photo.';return;
+  }
+  if(!photoState.arrival || arrivalOutletKey!==getOutletKey()){
+    arrivalCompleteFlag=false;status.className='arrival-status locked';status.textContent='📸 Take the outside/front photo to start the inside execution.';return;
+  }
+  arrivalCompleteFlag=true;status.className='arrival-status ready';status.textContent='✅ Arrival completed. You may now continue with inside execution.';
+}
+function resetArrivalPhoto(){
+  photoState.arrival=null; arrivalOutletKey='';
+  const box=document.getElementById('box-arrival');
+  if(box) box.innerHTML='<span>Outside / Front Photo Required</span><br><label class="photo-btn"><span>📷</span> Take Arrival Photo <input type="file" accept="image/*" capture="environment" class="hidden-file"></label>';
+  wirePhotoBox('arrival');
+  updateArrivalGate();
+}
+function blockUntilArrival(){
+  if(arrivalComplete()) return true;
+  updateArrivalGate();
+  alert('Please complete the Arrival Check first.\n\n1. Select the outlet.\n2. Capture GPS.\n3. Take the outside/front photo.\n\nOnly then can you start the inside execution.');
+  document.querySelector('.tabBtn[data-tab="outlet"]')?.click();
+  document.getElementById('arrivalCard')?.scrollIntoView({behavior:'smooth',block:'center'});
+  return false;
+}
+
+"""
+rep(marker,arrival+marker);
+
+# Modify wirePhotoBox to mark arrival after FileReader
+rep("photoState[key] = e.target.result;\n        box.innerHTML = `<img src=\"${photoState[key]}\" alt=\"${key} photo\">`;",
+    "photoState[key] = e.target.result;\n        if(key==='arrival') arrivalOutletKey=getOutletKey();\n        box.innerHTML = `<img src=\"${photoState[key]}\" alt=\"${key} photo\">`;");
+
+# Ensure arrival state reset in resetPhotos
+rep("photoState = {shelf:null, freezer:null, promo:null, competitor:null};",
+    "photoState = {arrival:null, shelf:null, freezer:null, promo:null, competitor:null};");
+
+# Add manage functions before final init
+insert_before="loadOutlets();"
+manage=r"""
+function renderManageOutletSelect(){
+  const sel=document.getElementById('manageOutletSelect'); if(!sel)return;
+  sel.innerHTML='<option value="">Select outlet...</option>'+outlets.map((o,i)=>`<option value="${i}">${o.name} — ${o.type||'Family'}</option>`).join('');
+}
+function refreshManagedOutlet(){
+  const idx=document.getElementById('manageOutletSelect').value, details=document.getElementById('manageOutletDetails');
+  if(idx===''){details.classList.add('hidden');return;}
+  details.classList.remove('hidden');
+  const o=outlets[+idx];
+  document.getElementById('manageOutletType').value=o.type||'Family';
+  document.getElementById('manageOutletStatus').textContent='Managing: '+o.name;
+}
+document.getElementById('manageOutletSelect')?.addEventListener('change',refreshManagedOutlet);
+document.getElementById('makeCorporateBtn')?.addEventListener('click',()=>{
+  const idx=document.getElementById('manageOutletSelect').value;if(idx===''){alert('Select an outlet first.');return;}
+  outlets[+idx].type='Corporate';storageSet('outlet-directory',JSON.stringify(outlets));renderOutletSelect();renderManageOutletSelect();renderScheduleEditor();
+  document.getElementById('manageOutletSelect').value=idx;refreshManagedOutlet();document.getElementById('manageOutletStatus').textContent='✅ Outlet changed to Corporate.';
+});
+document.getElementById('saveOutletTypeBtn')?.addEventListener('click',()=>{
+  const idx=document.getElementById('manageOutletSelect').value;if(idx===''){alert('Select an outlet first.');return;}
+  outlets[+idx].type=document.getElementById('manageOutletType').value;storageSet('outlet-directory',JSON.stringify(outlets));renderOutletSelect();renderManageOutletSelect();renderScheduleEditor();
+  document.getElementById('manageOutletSelect').value=idx;refreshManagedOutlet();document.getElementById('manageOutletStatus').textContent='✅ Outlet status saved.';
+});
+document.getElementById('deleteOutletBtn')?.addEventListener('click',()=>{
+  const idx=document.getElementById('manageOutletSelect').value;if(idx===''){alert('Select an outlet first.');return;}
+  const outlet=outlets[+idx];
+  if(!confirm('Delete this outlet from the active outlet list?\n\n'+outlet.name+'\n\nOld visit history will NOT be deleted.'))return;
+  outlets.splice(+idx,1);storageSet('outlet-directory',JSON.stringify(outlets));
+  Object.keys(weeklySchedule||{}).forEach(day=>weeklySchedule[day]=(weeklySchedule[day]||[]).filter(n=>n!==outlet.name));
+  storageSet('weekly-schedule',JSON.stringify(weeklySchedule||{}));
+  renderOutletSelect();renderManageOutletSelect();renderScheduleEditor();renderTodayRoute();
+  document.getElementById('manageOutletDetails').classList.add('hidden');
+  document.getElementById('manageOutletStatus').textContent='✅ Outlet removed from the active list. Old visits remain saved.';
+});
+
+"""
+rep(insert_before,manage+insert_before);
+
+# Remove automatic GPS on load/tab
+rep("window.addEventListener('load', requestGPS);","");
+
+# Add arrival to report photos
+rep("const photos = [\n    r.shelfPhoto ?",
+    "const photos = [\n    r.arrivalPhoto ? {label:'📸 Outlet Front / Arrival', src:r.arrivalPhoto} : null,\n    r.shelfPhoto ?");
+
+# Add arrival record field
+rep("shelfPhoto: photoState.shelf,", "arrivalPhoto: photoState.arrival,\n    shelfPhoto: photoState.shelf,");
+
+# Block report and save
+rep("document.getElementById('generateReportBtn').addEventListener('click', ()=>{\n  const store = getOutletName();",
+    "document.getElementById('generateReportBtn').addEventListener('click', ()=>{\n  if(!blockUntilArrival()) return;\n  const store = getOutletName();");
+
+rep("document.getElementById('saveBtn').addEventListener('click', ()=>{",
+    "document.getElementById('saveBtn').addEventListener('click', ()=>{\n  if(!blockUntilArrival()) return;");
+
+# Add arrival evidence block after GPS report row
+rep('<div class="report-row"><span>GPS</span><span>${r.gps ?',
+    '<div class="report-row"><span>GPS</span><span>${r.gps ?')
+# add after the exact closing GPS row if present
+rep('`${r.gps}` : \'—\'}</span></div>\n     </div>',
+    '`${r.gps}` : \'—\'}</span></div>\n       <div class="report-row"><span>Outside/front photo</span><span>${r.arrivalPhoto ? \'Captured\' : \'Missing\'}</span></div>\n     </div>');
+
+# Normalize selected outlet change: add resetArrivalPhoto at handler beginning/end
+rep("document.getElementById('outletSelect').addEventListener('change', ()=>{",
+    "document.getElementById('outletSelect').addEventListener('change', ()=>{\n  resetArrivalPhoto();");
+
+# Duplicate protection for Add Outlet
+rep("const name = document.getElementById('newOutletName').value.trim();",
+    "const name = document.getElementById('newOutletName').value.trim();\n  if(outlets.some(o=>(o.name||'').trim().toLowerCase()===name.toLowerCase())){document.getElementById('addOutletStatus').textContent='⚠️ This outlet already exists.';return;}");
+
+# Update GPS success if exact phrase exists
+rep("document.getElementById('gpsStatus').textContent = 'GPS captured';",
+    "document.getElementById('gpsStatus').textContent = 'GPS captured';\n      updateArrivalGate();");
+
+# Type in schedule
+rep("${o.name}</label>", "${o.name} <span class=\"manage-type\">${o.type||'Family'}</span></label>");
+
+# final status
+if(changes<8){
+  status('Only '+changes+' updates matched. Please do not replace your file — send me the current index.html.');
+  return;
+}
+const blob=new Blob([s],{type:'text/html'});
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='index_UPDATED.html';
+a.click();
+setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+status('Done. Downloaded index_UPDATED.html. Upload that file to your GitHub repository.');
+};
+</script>
+</body>
+</html>
