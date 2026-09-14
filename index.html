@@ -1,260 +1,1254 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Route Visit App Updater</title>
-<style>
-body{font-family:Arial,sans-serif;background:#FAF3E7;color:#332218;padding:20px;max-width:650px;margin:auto}
-.card{background:white;border:1px solid #D8C7A8;border-radius:10px;padding:18px}
-h1{font-size:22px}button{width:100%;padding:14px;margin-top:12px;border:0;border-radius:8px;background:#2B1B12;color:white;font-weight:bold}
-input{width:100%;padding:12px;margin-top:8px}
-#status{margin-top:14px;font-weight:bold}
-small{color:#6f6254}
+<!DOCTYPE html>  <html lang="en">    <head>    
+<meta charset="UTF-8">    
+<meta name="viewport" content="width=device-width,initial-scale=1">    
+<title>Daily Route Visit</title>    
+<link rel="manifest" href="manifest.json">    
+<link rel="apple-touch-icon" href="icon-180.png">    
+<link rel="icon" href="icon-192.png">    
+<meta name="theme-color" content="#2B1B12">    
+<meta name="mobile-web-app-capable" content="yes">    
+<meta name="apple-mobile-web-app-capable" content="yes">    
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">    
+<meta name="apple-mobile-web-app-title" content="Route Visit">    
+<style>    
+  :root{    
+    --crust:#2B1B12; --cream:#FAF3E7; --paper:#F3E9D8; --red:#A6362B;    
+    --gold:#C98A2E; --sage:#5C7A5E; --ink:#332218; --line:#D8C7A8;    
+    --shadow:0 2px 8px rgba(43,27,18,0.08);    
+  }    
+  *{box-sizing:border-box;}    
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;}    
+  header.app{background:var(--crust);color:var(--cream);padding:16px 16px 18px;position:sticky;top:0;z-index:6;border-bottom:4px solid var(--gold);}    
+  header.app h1{font-family:Georgia,"Times New Roman",serif;font-size:20px;margin:0 0 2px;}    
+  header.app small{opacity:.85;font-size:12px;}  nav.hnav{display:flex;overflow-x:auto;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:66px;z-index:5;-webkit-overflow-scrolling:touch;}  
+nav.hnav button{border:0;background:transparent;padding:12px 14px;white-space:nowrap;font-weight:700;font-size:13px;color:#8A7860;flex-shrink:0;}  
+nav.hnav button.active{color:var(--red);border-bottom:3px solid var(--red);}  main{max-width:600px;margin:0 auto;padding:16px 16px 100px;}
+.tab{display:none;}
+.tab.active{display:block;}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow);}
+.card h2{font-family:Georgia,serif;font-size:16px;margin:0 0 12px;color:var(--crust);}
+
+label.field-label{display:block;font-size:12px;font-weight:700;color:#8A6A3E;text-transform:uppercase;letter-spacing:0.05em;margin:12px 0 6px;}
+label.field-label:first-child{margin-top:0;}
+select, input[type=text], input[type=number], input[type=date], input[type=time], textarea{
+width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:15px;color:var(--ink);font-family:inherit;
+}
+input[readonly]{background:var(--paper);}
+textarea{min-height:64px;resize:vertical;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.yn{display:flex;gap:8px;}
+.yn button{flex:1;padding:8px;border-radius:6px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:#8A7860;}
+.yn button.sel-yes{background:var(--sage);border-color:var(--sage);color:#fff;}
+.yn button.sel-no{background:var(--red);border-color:var(--red);color:#fff;}
+
+.btn{border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px;}
+.btn.primary{background:var(--crust);color:#fff;}
+.btn.gold{background:var(--gold);color:#fff;}
+.btn.block{width:100%;}
+
+.diff-display{font-size:14px;font-weight:700;color:var(--crust);background:var(--paper);padding:8px 12px;border-radius:6px;margin-top:6px;}
+.gps-status{font-size:12px;color:#8A7860;margin-top:8px;}
+.map-link{font-size:12px;color:var(--red);font-weight:600;}
+
+.photo-box{border:2px dashed var(--line);border-radius:8px;padding:14px;text-align:center;color:#8A7860;font-size:13px;margin-top:6px;}
+.photo-box img{max-width:100%;border-radius:6px;display:block;margin-bottom:8px;}
+.photo-btn{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:8px 14px;background:var(--crust);color:#fff;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+input[type=file].hidden-file{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+.score-badge{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;background:#4a3020;color:#E4D3B8;}
+.score-badge.high{background:#3E6B47;color:#fff;}
+.score-badge.medium{background:var(--gold);color:#fff;}
+.score-badge.low{background:var(--red);color:#fff;}
+.score-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow);text-align:center;}
+.score-card .big{font-size:42px;font-weight:800;color:var(--crust);}
+.score-card .label{font-size:12px;color:#8A7860;text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;}
+.score-card .big.high{color:#3E6B47;}
+.score-card .big.medium{color:var(--gold);}
+.score-card .big.low{color:var(--red);}
+
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:4px;}
+.kpi-box{background:var(--paper);border-radius:10px;padding:14px 10px;}
+.kpi-num{font-size:26px;font-weight:800;color:var(--crust);}
+.kpi-label{font-size:11px;color:#8A7860;text-transform:uppercase;letter-spacing:0.04em;margin-top:4px;}
+
+.report-block{margin-bottom:16px;}
+.report-block h3{font-family:Georgia,serif;font-size:15px;color:var(--crust);margin:0 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+.report-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px dashed #EFE5D2;}
+.report-row span:first-child{color:#8A7860;}
+.report-row span:last-child{font-weight:600;text-align:right;}
+.report-photos{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;}
+.report-photos img{width:100%;border-radius:6px;}
+.report-empty{text-align:center;color:#8A7860;font-size:13px;padding:20px;}
+
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--cream);padding:12px 16px 16px;border-top:1px solid var(--line);max-width:600px;margin:0 auto;}
+.save-btn{width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;}
+.save-btn:disabled{background:#C9AFA3;}
+.status{text-align:center;font-size:12px;color:#8A7860;margin-top:8px;min-height:16px;}
+
+.log-item{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:10px;}
+.log-item.oos{border-left:4px solid var(--red);}
+.log-item .store{font-weight:700;font-size:14px;color:var(--crust);}
+.log-item .date{font-size:12px;color:#8A7860;margin-bottom:6px;}
+.log-item .summary{font-size:13px;color:var(--ink);margin-bottom:4px;}
+.log-item .row{font-size:12px;color:#8A7860;margin-top:2px;}
+.empty{text-align:center;padding:40px 20px;color:#8A7860;font-size:14px;}
+
+.overlay{position:fixed;inset:0;background:rgba(43,27,18,0.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+.overlay.hidden{display:none !important;}
+.popup{background:var(--cream);border-radius:10px;max-width:400px;width:100%;padding:20px;border-top:5px solid var(--gold);max-height:80vh;overflow-y:auto;}
+.popup h3{font-family:Georgia,serif;font-size:17px;margin:0 0 4px;color:var(--crust);}
+.popup .sub{font-size:12px;color:#8A7860;margin-bottom:14px;}
+.reminder-card{background:#fff;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:6px;padding:10px 12px;margin-bottom:10px;}
+.reminder-card .store{font-weight:700;font-size:13px;color:var(--crust);}
+.reminder-card .comment{font-size:13px;margin-top:4px;}
+.popup-close{width:100%;padding:12px;background:var(--crust);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;margin-top:6px;}
+.hidden{display:none !important;}
+
+/* --- new: validation highlighting --- */
+.field-missing{border-color:var(--red) !important; box-shadow:0 0 0 2px rgba(166,54,43,0.25);}
+
+/* --- new: weekly schedule editor --- */
+.schedule-day-block{margin-bottom:16px;}
+.schedule-options{max-height:160px;overflow-y:auto;border:1px solid var(--line);border-radius:6px;padding:6px 10px;background:var(--paper);}
+.schedule-options label{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;}
+
+/* --- new: today's route checklist --- */
+.route-item{display:flex;justify-content:space-between;align-items:center;}
+.route-status{font-weight:700;font-size:12px;white-space:nowrap;margin-left:10px;}
+.route-status.done{color:#3E6B47;}
+.route-status.pending{color:var(--red);}
+.route-status.missed{color:var(--red);}
 </style>
-</head>
-<body>
-<div class="card">
-<h1>Daily Route Visit — Updater</h1>
-<p>Select your current <b>index.html</b>. This updater will add the new arrival-photo gate and outlet management without needing internet.</p>
-<input id="file" type="file" accept=".html,text/html">
-<button id="go">Update & Download index.html</button>
-<div id="status"></div>
-<small>Keep your current index.html as a backup before replacing it.</small>
-</div>
-<script>
-const $=id=>document.getElementById(id);
-function status(t){$('status').textContent=t;}
 
-$('go').onclick=async()=>{
- const f=$('file').files[0];
- if(!f){status('Please select your current index.html first.');return;}
- let s=await f.text();
- let changes=0;
-
- function rep(a,b){
-   if(s.includes(a)){s=s.replace(a,b);changes++;return true;}
-   return false;
- }
-
- rep('</style>',`
-.arrival-card{border:2px solid var(--gold);background:#fffaf0}
-.arrival-status{padding:10px 12px;border-radius:8px;background:var(--paper);font-size:13px;font-weight:700;margin-bottom:10px}
-.arrival-status.ready{background:#e7f2e8;color:#3E6B47}
-.arrival-status.locked{background:#f8e5e1;color:var(--red)}
-.manage-list{max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
-.manage-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-bottom:1px solid var(--line);font-size:13px}
-.manage-row:last-child{border-bottom:0}.manage-name{font-weight:700;flex:1}
-.manage-type{font-size:10px;font-weight:700;padding:3px 7px;border-radius:12px;background:#fff;border:1px solid var(--line)}
-.danger-btn{background:var(--red);color:#fff;border:0;border-radius:6px;padding:7px 9px;font-size:11px;font-weight:700}
-.small-btn{background:var(--crust);color:#fff;border:0;border-radius:6px;padding:7px 9px;font-size:11px;font-weight:700}
-</style>`);
-
-rep('    </div>\n    <div class="card">\n      <h2>GPS Location</h2>',
-`    </div>
-    <div class="card arrival-card" id="arrivalCard">
-      <h2>📸 Arrival Check</h2>
-      <div class="arrival-status locked" id="arrivalStatus">🔒 Select the outlet and capture GPS first.</div>
-      <p style="font-size:12px;color:#8A7860;margin:0 0 8px;">When you arrive, take a clear photo of the front/outside of the outlet. You must complete this before starting the inside execution.</p>
-      <div class="photo-box" data-photo-key="arrival" id="box-arrival">
-        <span>Outside / Front Photo Required</span><br>
-        <label class="photo-btn"><span>📷</span> Take Arrival Photo
-          <input type="file" accept="image/*" capture="environment" class="hidden-file">
-        </label>
-      </div>
-    </div>
-    <div class="card">
-      <h2>GPS Location</h2>`);
-
-rep('      <div class="gps-status" id="addOutletStatus"></div>\n    </div>\n  </section>',
-`      <div class="gps-status" id="addOutletStatus"></div>
-    </div>
-    <div class="card">
-      <h2>Manage Outlet Directory</h2>
-      <p style="font-size:12px;color:#8A7860;margin-top:-6px;">Use this when an outlet is duplicated, incorrectly captured, closed, or changes between Family and Corporate.</p>
-      <label class="field-label">Select outlet to manage</label>
-      <select id="manageOutletSelect"><option value="">Select outlet...</option></select>
-      <div id="manageOutletDetails" class="hidden" style="margin-top:10px;">
-        <label class="field-label">Outlet type / status</label>
-        <select id="manageOutletType">
-          <option value="Family">Family</option><option value="Corporate">Corporate</option>
-          <option value="Closed">Closed</option><option value="Incorrect/Duplicate">Incorrect / Duplicate</option>
-        </select>
-        <div class="two-col" style="margin-top:10px;">
-          <button class="btn primary" type="button" id="makeCorporateBtn">🔄 Make Corporate</button>
-          <button class="btn gold" type="button" id="saveOutletTypeBtn">Save Type</button>
-        </div>
-        <button class="danger-btn block" type="button" id="deleteOutletBtn" style="width:100%;margin-top:10px;padding:11px;">🗑️ Delete Outlet</button>
-        <div class="gps-status" id="manageOutletStatus"></div>
-      </div>
-    </div>
-  </section>`);
-
-rep("const DEFAULT_STORES = [", "const DEFAULT_STORES = [");
-rep("].map(name => ({name, address:'', lat:'', lng:''}));", "].map(name => ({name, address:'', lat:'', lng:'', type:'Family'}));");
-
-rep("outlets.push({name, address:'', lat:'', lng:''});",
-    "outlets.push({name, address:'', lat:'', lng:'', type:'Family'});");
-
-rep("  let added = false;\n", """  outlets = outlets.map(o => ({
-    name:o.name || '', address:o.address || '', lat:o.lat || '', lng:o.lng || '', type:o.type || 'Family'
-  }));
-  let added = false;
-""");
-
-rep("  renderOutletSelect();\n  renderScheduleEditor();",
-    "  renderOutletSelect();\n  renderScheduleEditor();\n  renderManageOutletSelect();");
-
-rep("let photoState = {shelf:null, freezer:null, promo:null, competitor:null};",
-    "let photoState = {arrival:null, shelf:null, freezer:null, promo:null, competitor:null};");
-
-# Insert arrival functions before wirePhotoBox
-marker="function wirePhotoBox(key){"
-arrival=r"""
-let arrivalCompleteFlag = false;
-let arrivalOutletKey = '';
-
-function getOutletKey(){
-  const sel=document.getElementById('outletSelect')?.value || '';
-  if(sel==='__manual') return 'manual:'+(document.getElementById('outletManual')?.value.trim()||'');
-  return sel;
+</head>    
+<body>  <div class="overlay" id="pinOverlay">    
+  <div class="popup" id="pinPopup">    
+    <h3 id="pinTitle">Enter PIN</h3>    
+    <div class="sub" id="pinSub">This app is locked to King Pie route staff only.</div>    
+    <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" id="pinInput" placeholder="PIN" style="text-align:center;font-size:22px;letter-spacing:6px;">    
+    <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" id="pinConfirmInput" placeholder="Confirm PIN" style="text-align:center;font-size:22px;letter-spacing:6px;margin-top:8px;display:none;">    
+    <div class="gps-status" id="pinError" style="color:var(--red);"></div>    
+    <button class="popup-close" id="pinSubmitBtn">Unlock</button>    
+  </div>    
+</div>  <header class="app">    <h1>Daily Route Visit</h1>    
+  <small>Outlet, stock, competitor, pricing &amp; orders — swipe tabs to move through a visit</small><br>    
+  <span class="score-badge" id="scoreBadge">Score: --%</span>    
+  <button type="button" id="changePinBtn" style="float:right;background:none;border:1px solid var(--gold);color:var(--cream);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;">🔒 Change PIN</button>    
+</header>  <nav class="hnav" id="hnav">    
+  <button class="tabBtn active" data-tab="dashboard">Dashboard</button>    
+  <button class="tabBtn" data-tab="schedule">Weekly Schedule</button>    
+  <button class="tabBtn" data-tab="outlet">1. Outlet &amp; GPS</button>    
+  <button class="tabBtn" data-tab="stock">2. Stock</button>    
+  <button class="tabBtn" data-tab="competitor">3. Competitor</button>    
+  <button class="tabBtn" data-tab="pricing">4. Pricing &amp; Promo</button>    
+  <button class="tabBtn" data-tab="display">5. Display</button>    
+  <button class="tabBtn" data-tab="customer">6. Customer</button>    
+  <button class="tabBtn" data-tab="orders">7. Orders &amp; Follow-up</button>    
+  <button class="tabBtn" data-tab="evidence">8. Evidence</button>    
+  <button class="tabBtn" data-tab="notes">9. Notes</button>    
+  <button class="tabBtn" data-tab="log">Visit Log</button>    
+  <button class="tabBtn" data-tab="report">Report</button>    
+</nav>  <main>    <section id="tab-dashboard" class="tab active">    
+    <div class="card">    
+      <h2>Today's Route <span style="font-weight:400;font-size:12px;color:#8A7860;">— based on your Weekly Schedule</span></h2>    
+      <div id="todayRouteList"></div>    
+      <button class="btn gold block" type="button" id="syncRouteBtn" style="margin-top:10px;">🔄 Refresh Today's Route</button>    
+    </div>    
+    <div class="card">    
+      <h2>Missed Outlets <span style="font-weight:400;font-size:12px;color:#8A7860;">— last 7 days</span></h2>    
+      <div id="missedHistoryList"></div>    
+    </div>    
+    <div class="card" style="text-align:center;">    
+      <h2 style="justify-content:center;display:flex;">Today &amp; All-Time Overview</h2>    
+      <div class="kpis" id="kpiGrid">    
+        <div class="kpi-box"><div class="kpi-num" id="kpiVisits">0</div><div class="kpi-label">Outlets visited</div></div>    
+        <div class="kpi-box"><div class="kpi-num" id="kpiAvail">--%</div><div class="kpi-label">Avg availability</div></div>    
+        <div class="kpi-box"><div class="kpi-num" id="kpiScore">--%</div><div class="kpi-label">Avg execution score</div></div>    
+        <div class="kpi-box"><div class="kpi-num" id="kpiOpp">0</div><div class="kpi-label">High-scoring visits (80%+)</div></div>    
+      </div>    
+    </div>    
+    <div class="card">    
+      <h2>Recent Visits</h2>    
+      <div id="dashboardRecent"></div>    
+    </div>    
+  </section>    <section id="tab-schedule" class="tab">    
+    <div class="card">    
+      <h2>Set Your Weekly Route</h2>    
+      <p style="font-size:13px;color:#8A7860;margin-top:-6px;">Tick which outlets you plan to visit on each day. Every morning the Dashboard will automatically show that day's list, so you can see at a glance what's completed and what's still pending.</p>    
+      <div id="scheduleDayList"></div>    
+      <button class="btn primary block" type="button" id="saveScheduleBtn" style="margin-top:10px;">Save Weekly Schedule</button>    
+      <div class="gps-status" id="scheduleStatus"></div>    
+    </div>    
+  </section>    <section id="tab-outlet" class="tab">    
+    <div class="card">    
+      <h2>Outlet</h2>    
+      <label class="field-label">Select outlet</label>    
+      <select id="outletSelect"><option value="">Select outlet...</option><option value="__manual">Enter manually</option></select>    
+      <input type="text" id="outletManual" placeholder="Outlet name" style="display:none;margin-top:8px;">    
+      <label class="field-label">Address / Area (optional)</label>    
+      <input type="text" id="outletAddress" placeholder="e.g. Cnr Main & 5th, Kempton Park">    
+      <label class="field-label">Visit date</label>    
+      <input type="date" id="visitDate">    
+    </div>    
+    <div class="card">    
+      <h2>GPS Location</h2>    
+      <button class="btn primary block" type="button" id="captureGpsBtn">📍 Capture Current GPS</button>    
+      <div class="gps-status" id="gpsStatus">No GPS captured yet.</div>    
+      <div class="two-col" style="margin-top:10px;">    
+        <div><label class="field-label">Latitude</label><input type="number" step="any" id="gpsLat"></div>    
+        <div><label class="field-label">Longitude</label><input type="number" step="any" id="gpsLng"></div>    
+      </div>    
+    </div>    
+    <div class="card">    
+      <h2>Add a new outlet to the list</h2>    
+      <label class="field-label">Outlet name</label>    
+      <input type="text" id="newOutletName" placeholder="e.g. PnP Family - Rosebank">    
+      <label class="field-label">Address / Area</label>    
+      <input type="text" id="newOutletAddress">    
+      <div class="two-col">    
+        <div><label class="field-label">Latitude</label><input type="number" step="any" id="newOutletLat"></div>    
+        <div><label class="field-label">Longitude</label><input type="number" step="any" id="newOutletLng"></div>    
+      </div>    
+      <button class="btn gold block" type="button" id="addOutletBtn" style="margin-top:10px;">+ Add Outlet to List</button>    
+      <div class="gps-status" id="addOutletStatus"></div>    
+    </div>    
+  </section>    <section id="tab-stock" class="tab">    
+    <div class="card">    
+      <h2>Stock on Hand</h2>    
+      <div class="two-col">    
+        <div><label class="field-label">My qty (cases/boxes)</label><input type="number" id="myQty" min="0"></div>    
+        <div><label class="field-label">Availability %</label><input type="number" id="availabilityPct" min="0" max="100"></div>    
+      </div>    
+      <label class="field-label">Out of stock?</label>    
+      <div class="yn" data-key="oosYN" id="oosYN-group"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+      <label class="field-label">Reason if known</label>    
+      <input type="text" id="oosReason" placeholder="e.g. late delivery, high demand...">    
+      <label class="field-label">Damaged / expired stock?</label>    
+      <div class="yn" data-key="damagedYN"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+    </div>    
+  </section>    <section id="tab-competitor" class="tab">    
+    <div class="card">    
+      <h2>Competitor Check</h2>    
+      <label class="field-label">Competitor brand</label>    
+      <input type="text" id="compBrand" placeholder="e.g. Mama's Pies">    
+      <div class="two-col">    
+        <div><label class="field-label">Qty on shelf</label><input type="number" id="compQty" min="0"></div>    
+        <div><label class="field-label">Price (R)</label><input type="number" id="compPrice" min="0" step="0.01"></div>    
+      </div>    
+      <label class="field-label">Shelf position</label>    
+      <input type="text" id="compPosition" placeholder="e.g. eye level, freezer door 2...">    
+      <label class="field-label">Promotion running?</label>    
+      <div class="yn" data-key="compPromoYN"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+      <label class="field-label">Visibility vs ours</label>    
+      <select id="visibilityVs"><option value="">Select...</option><option>Better</option><option>Same</option><option>Worse</option></select>    
+      <label class="field-label">Competitor photo (optional)</label>    
+      <div class="photo-box" data-photo-key="competitor" id="box-competitor">    
+        <span>No photo yet</span><br>    
+        <label class="photo-btn"><span>📷</span>Take Photo<input type="file" accept="image/*" capture="environment" class="hidden-file"></label>    
+      </div>    
+    </div>    
+  </section>    <section id="tab-pricing" class="tab">    
+    <div class="card">    
+      <h2>Pricing</h2>    
+      <label class="field-label">My product price (R)</label>    
+      <input type="number" id="myPrice" min="0" step="0.01">    
+      <div class="diff-display" id="priceDiffDisplay">Price difference: —</div>    
+    </div>    
+    <div class="card">    
+      <h2>Promotions</h2>    
+      <label class="field-label">Is my product on promotion?</label>    
+      <div class="yn" data-key="myPromoYN"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+      <label class="field-label">Promotion type</label>    
+      <select id="promoType"><option value="">Select...</option><option>Discount</option><option>Display</option><option>Bundle</option><option>Other</option></select>    
+    </div>    
+  </section>    <section id="tab-display" class="tab">    
+    <div class="score-card">    
+      <div class="big" id="scoreBig">--%</div>    
+      <div class="label" id="scoreLabel">Execution Score</div>    
+    </div>    
+    <div class="card">    
+      <h2>Display &amp; Execution</h2>    
+      <label class="field-label">Eye level?</label>    
+      <div class="yn" data-key="eyeLevelYN" id="eyeLevelYN-group"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+      <label class="field-label">Visibility</label>    
+      <select id="visibilityGP"><option value="">Select...</option><option>Good</option><option>Poor</option></select>    
+      <label class="field-label">Secondary display?</label>    
+      <div class="yn" data-key="secondaryDisplayYN"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+      <label class="field-label">POS material available?</label>    
+      <div class="yn" data-key="posMaterialYN"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+      <label class="field-label">Shelf space</label>    
+      <select id="shelfSpace"><option value="">Select...</option><option>Good</option><option>Average</option><option>Poor</option></select>    
+    </div>    
+  </section>    <section id="tab-customer" class="tab">    
+    <div class="card">    
+      <h2>Customer Relationship</h2>    
+      <label class="field-label">Buyer/manager spoken to?</label>    
+      <div class="yn" data-key="spokeToYN" id="spokeToYN-group"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+      <label class="field-label">Customer feedback</label>    
+      <textarea id="customerFeedback" placeholder="What did they say?"></textarea>    
+      <label class="field-label">Opportunity identified</label>    
+      <textarea id="opportunityNotes" placeholder="Any opening for more business?"></textarea>    
+    </div>    
+  </section>    <section id="tab-orders" class="tab">    
+    <div class="card">    
+      <h2>Order Opportunity</h2>    
+      <label class="field-label">Order placed?</label>    
+      <div class="yn" data-key="orderPlaced" id="orderPlaced-group"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+      <div class="two-col">    
+        <div><label class="field-label">Cases ordered</label><input type="number" id="casesOrdered" min="0"></div>    
+        <div><label class="field-label">Est. opportunity (R)</label><input type="number" id="estimatedOpportunity" min="0" step="0.01"></div>    
+      </div>    
+      <label class="field-label">Potential next order</label>    
+      <input type="text" id="potentialNextOrder" placeholder="e.g. 10 more cases if weekend promo runs">    
+      <div class="two-col">    
+        <div><label class="field-label">Last order date</label><input type="date" id="lastOrderDate"></div>    
+        <div><label class="field-label">Delivery date</label><input type="date" id="deliveryDate"></div>    
+      </div>    
+      <label class="field-label">Last order delivered?</label>    
+      <div class="yn" data-key="lastDeliveredYN"><button data-v="yes">Yes</button><button data-v="no">No</button></div>    
+      <label class="field-label">Comments</label>    
+      <textarea id="orderNotes" placeholder="Order influencing notes / comments..."></textarea>    
+    </div>    
+    <div class="card">    
+      <h2>Follow-up</h2>    
+      <div class="two-col">    
+        <div><label class="field-label">Next meeting date</label><input type="date" id="nextMeetingDate"></div>    
+        <div><label class="field-label">Time</label><input type="time" id="nextMeetingTime"></div>    
+      </div>    
+      <label class="field-label">Action required</label>    
+      <input type="text" id="actionRequired" placeholder="What needs to happen next?">    
+      <label class="field-label">Who must follow up</label>    
+      <input type="text" id="followUpOwner" placeholder="Name">    
+    </div>    
+  </section>    <section id="tab-evidence" class="tab">    
+    <div class="card">    
+      <h2>Evidence</h2>    
+      <p style="font-size:12px;color:#8A7860;margin-top:-6px;">Photos open your camera directly — this confirms you were on-site when the photo was taken.</p>    
+      <label class="field-label">Shelf photo</label>    
+      <div class="photo-box" data-photo-key="shelf" id="box-shelf">    
+        <span>No photo yet</span><br>    
+        <label class="photo-btn"><span>📷</span>Take Photo<input type="file" accept="image/*" capture="environment" class="hidden-file"></label>    
+      </div>    
+      <label class="field-label">Freezer photo</label>    
+      <div class="photo-box" data-photo-key="freezer" id="box-freezer">    
+        <span>No photo yet</span><br>    
+        <label class="photo-btn"><span>📷</span>Take Photo<input type="file" accept="image/*" capture="environment" class="hidden-file"></label>    
+      </div>    
+      <label class="field-label">Promotion / display photo</label>    
+      <div class="photo-box" data-photo-key="promo" id="box-promo">    
+        <span>No photo yet</span><br>    
+        <label class="photo-btn"><span>📷</span>Take Photo<input type="file" accept="image/*" capture="environment" class="hidden-file"></label>    
+      </div>    
+    </div>    
+  </section>    <section id="tab-notes" class="tab">    
+    <div class="card">    
+      <h2>Anything else</h2>    
+      <textarea id="extraNotes" placeholder="Any other observations..."></textarea>    
+    </div>    
+  </section>    <section id="tab-log" class="tab">    
+    <div id="logList"></div>    
+  </section>    <section id="tab-report" class="tab">    
+    <div class="card">    
+      <h2>Visit Report</h2>    
+      <p style="font-size:13px;color:#8A7860;margin-top:-6px;">Builds a report from what's currently filled in on this visit — generate it before hitting Save.</p>    
+      <button class="btn primary block" type="button" id="generateReportBtn">Generate Report</button>    
+    </div>    
+    <div class="card" id="reportOutput">    
+      <div class="report-empty">Fill in a visit and tap "Generate Report" to see it here.</div>    
+    </div>    
+  </section>  </main>  <div class="save-bar" id="saveBar">    
+  <button class="save-btn" id="saveBtn">Save Visit</button>    
+  <div class="status" id="statusMsg"></div>    
+</div>  <div class="overlay hidden" id="reminderOverlay">    
+  <div class="popup">    
+    <h3>Follow up on these orders</h3>    
+    <div class="sub">Logged on a previous visit — due today</div>    
+    <div id="reminderList"></div>    
+    <button class="popup-close" id="reminderClose">Got it</button>    
+  </div>    
+</div>  <script>    // --- Local storage wrapper (works when this file is opened directly in a browser) ---
+function storageGet(key){
+try{
+const v = localStorage.getItem(key);
+return v === null ? null : {key, value: v};
+}catch(e){ return null; }
 }
-function arrivalComplete(){
-  return !!(getOutletName() && document.getElementById('gpsLat').value && document.getElementById('gpsLng').value &&
-    photoState.arrival && arrivalOutletKey===getOutletKey());
-}
-function updateArrivalGate(){
-  const status=document.getElementById('arrivalStatus');
-  if(!status) return;
-  if(!getOutletName()){arrivalCompleteFlag=false;status.className='arrival-status locked';status.textContent='🔒 Select the outlet first.';return;}
-  if(!document.getElementById('gpsLat').value || !document.getElementById('gpsLng').value){
-    arrivalCompleteFlag=false;status.className='arrival-status locked';status.textContent='📍 Capture your GPS before taking the arrival photo.';return;
-  }
-  if(!photoState.arrival || arrivalOutletKey!==getOutletKey()){
-    arrivalCompleteFlag=false;status.className='arrival-status locked';status.textContent='📸 Take the outside/front photo to start the inside execution.';return;
-  }
-  arrivalCompleteFlag=true;status.className='arrival-status ready';status.textContent='✅ Arrival completed. You may now continue with inside execution.';
-}
-function resetArrivalPhoto(){
-  photoState.arrival=null; arrivalOutletKey='';
-  const box=document.getElementById('box-arrival');
-  if(box) box.innerHTML='<span>Outside / Front Photo Required</span><br><label class="photo-btn"><span>📷</span> Take Arrival Photo <input type="file" accept="image/*" capture="environment" class="hidden-file"></label>';
-  wirePhotoBox('arrival');
-  updateArrivalGate();
-}
-function blockUntilArrival(){
-  if(arrivalComplete()) return true;
-  updateArrivalGate();
-  alert('Please complete the Arrival Check first.\n\n1. Select the outlet.\n2. Capture GPS.\n3. Take the outside/front photo.\n\nOnly then can you start the inside execution.');
-  document.querySelector('.tabBtn[data-tab="outlet"]')?.click();
-  document.getElementById('arrivalCard')?.scrollIntoView({behavior:'smooth',block:'center'});
-  return false;
+function storageSet(key, value){
+try{ localStorage.setItem(key, value); return {key, value}; }catch(e){ return null; }
 }
 
-"""
-rep(marker,arrival+marker);
+// --- PIN lock ---
+(function(){
+const overlay = document.getElementById('pinOverlay');
+const title = document.getElementById('pinTitle');
+const sub = document.getElementById('pinSub');
+const input = document.getElementById('pinInput');
+const confirmInput = document.getElementById('pinConfirmInput');
+const errorEl = document.getElementById('pinError');
+const submitBtn = document.getElementById('pinSubmitBtn');
 
-# Modify wirePhotoBox to mark arrival after FileReader
-rep("photoState[key] = e.target.result;\n        box.innerHTML = `<img src=\"${photoState[key]}\" alt=\"${key} photo\">`;",
-    "photoState[key] = e.target.result;\n        if(key==='arrival') arrivalOutletKey=getOutletKey();\n        box.innerHTML = `<img src=\"${photoState[key]}\" alt=\"${key} photo\">`;");
+let mode = localStorage.getItem('routeAppPin') ? 'unlock' : 'setup';
+let changing = false;
 
-# Ensure arrival state reset in resetPhotos
-rep("photoState = {shelf:null, freezer:null, promo:null, competitor:null};",
-    "photoState = {arrival:null, shelf:null, freezer:null, promo:null, competitor:null};");
-
-# Add manage functions before final init
-insert_before="loadOutlets();"
-manage=r"""
-function renderManageOutletSelect(){
-  const sel=document.getElementById('manageOutletSelect'); if(!sel)return;
-  sel.innerHTML='<option value="">Select outlet...</option>'+outlets.map((o,i)=>`<option value="${i}">${o.name} — ${o.type||'Family'}</option>`).join('');
+function render(){
+errorEl.textContent = '';
+input.value = ''; confirmInput.value = '';
+if(mode === 'setup'){
+title.textContent = 'Set a PIN';
+sub.textContent = 'Choose a PIN to lock this app so it cannot be casually opened by anyone else.';
+confirmInput.style.display = 'block';
+submitBtn.textContent = 'Set PIN';
+}else{
+title.textContent = changing ? 'Enter current PIN' : 'Enter PIN';
+sub.textContent = changing ? 'Confirm your current PIN to change it.' : 'This app is locked to King Pie route staff only.';
+confirmInput.style.display = 'none';
+submitBtn.textContent = 'Unlock';
 }
-function refreshManagedOutlet(){
-  const idx=document.getElementById('manageOutletSelect').value, details=document.getElementById('manageOutletDetails');
-  if(idx===''){details.classList.add('hidden');return;}
-  details.classList.remove('hidden');
-  const o=outlets[+idx];
-  document.getElementById('manageOutletType').value=o.type||'Family';
-  document.getElementById('manageOutletStatus').textContent='Managing: '+o.name;
+overlay.classList.remove('hidden');
+setTimeout(()=>input.focus(), 100);
 }
-document.getElementById('manageOutletSelect')?.addEventListener('change',refreshManagedOutlet);
-document.getElementById('makeCorporateBtn')?.addEventListener('click',()=>{
-  const idx=document.getElementById('manageOutletSelect').value;if(idx===''){alert('Select an outlet first.');return;}
-  outlets[+idx].type='Corporate';storageSet('outlet-directory',JSON.stringify(outlets));renderOutletSelect();renderManageOutletSelect();renderScheduleEditor();
-  document.getElementById('manageOutletSelect').value=idx;refreshManagedOutlet();document.getElementById('manageOutletStatus').textContent='✅ Outlet changed to Corporate.';
+
+submitBtn.addEventListener('click', ()=>{
+const val = input.value.trim();
+if(!val){ errorEl.textContent = 'Enter a PIN.'; return; }
+
+if(mode === 'setup'){    
+  const confirmVal = confirmInput.value.trim();    
+  if(val.length < 4){ errorEl.textContent = 'Use at least 4 digits.'; return; }    
+  if(val !== confirmVal){ errorEl.textContent = 'PINs do not match.'; return; }    
+  localStorage.setItem('routeAppPin', val);    
+  overlay.classList.add('hidden');    
+  return;    
+}    
+
+if(changing){    
+  if(val !== localStorage.getItem('routeAppPin')){ errorEl.textContent = 'Incorrect current PIN.'; return; }    
+  mode = 'setup';    
+  changing = false;    
+  render();    
+  return;    
+}    
+
+if(val === localStorage.getItem('routeAppPin')){    
+  overlay.classList.add('hidden');    
+}else{    
+  errorEl.textContent = 'Incorrect PIN. Try again.';    
+  input.value = '';    
+}
+
 });
-document.getElementById('saveOutletTypeBtn')?.addEventListener('click',()=>{
-  const idx=document.getElementById('manageOutletSelect').value;if(idx===''){alert('Select an outlet first.');return;}
-  outlets[+idx].type=document.getElementById('manageOutletType').value;storageSet('outlet-directory',JSON.stringify(outlets));renderOutletSelect();renderManageOutletSelect();renderScheduleEditor();
-  document.getElementById('manageOutletSelect').value=idx;refreshManagedOutlet();document.getElementById('manageOutletStatus').textContent='✅ Outlet status saved.';
-});
-document.getElementById('deleteOutletBtn')?.addEventListener('click',()=>{
-  const idx=document.getElementById('manageOutletSelect').value;if(idx===''){alert('Select an outlet first.');return;}
-  const outlet=outlets[+idx];
-  if(!confirm('Delete this outlet from the active outlet list?\n\n'+outlet.name+'\n\nOld visit history will NOT be deleted.'))return;
-  outlets.splice(+idx,1);storageSet('outlet-directory',JSON.stringify(outlets));
-  Object.keys(weeklySchedule||{}).forEach(day=>weeklySchedule[day]=(weeklySchedule[day]||[]).filter(n=>n!==outlet.name));
-  storageSet('weekly-schedule',JSON.stringify(weeklySchedule||{}));
-  renderOutletSelect();renderManageOutletSelect();renderScheduleEditor();renderTodayRoute();
-  document.getElementById('manageOutletDetails').classList.add('hidden');
-  document.getElementById('manageOutletStatus').textContent='✅ Outlet removed from the active list. Old visits remain saved.';
+
+document.getElementById('changePinBtn').addEventListener('click', ()=>{
+mode = 'unlock';
+changing = true;
+render();
 });
 
-"""
-rep(insert_before,manage+insert_before);
+render();
+})();
 
-# Remove automatic GPS on load/tab
-rep("window.addEventListener('load', requestGPS);","");
+const DEFAULT_STORES = ["GF63 Northmead Mall","GF23 Kempton Sq","GF09 Oakfields","GF05 Witpoortjie",
+"GF06 Honey Junction","GF54 Braamfontein","GF35 Brixton","GF97 Eyethu Mall Orange Farm",
+"GH09 Birch Acres","GF70 Primrose","GH32 Tshepisong","GH27 Letsheng Mall","GH53 Tembisa",
+"GF62 Craghall Park","NF07 Brits","NF43 Brits Mall","NF09 Warmbaths","NF03 Witbank",
+"NF50 Beyers Naude","NF85 Soshanguve","NF69 Pretoria North","PnP Family Strubenvale",
+"PnP Family Kwathema"].map(name => ({name, address:'', lat:'', lng:''}));
 
-# Add arrival to report photos
-rep("const photos = [\n    r.shelfPhoto ?",
-    "const photos = [\n    r.arrivalPhoto ? {label:'📸 Outlet Front / Arrival', src:r.arrivalPhoto} : null,\n    r.shelfPhoto ?");
+let outlets = [];
 
-# Add arrival record field
-rep("shelfPhoto: photoState.shelf,", "arrivalPhoto: photoState.arrival,\n    shelfPhoto: photoState.shelf,");
+// --- new: outlets that must exist in the list, added automatically without wiping saved data ---
+const OUTLETS_TO_ENSURE = [
+"GG11 Bophelong",
+"GH03 Busy Corner",
+"GF43 New Market",
+"GF87 Protea Boulevard",
+"Protea North",
+"Cradle Stone",
+"Jackal Creek",
+"Wilro Park",
+"Donderboom",
+"Farremere"
+];
 
-# Block report and save
-rep("document.getElementById('generateReportBtn').addEventListener('click', ()=>{\n  const store = getOutletName();",
-    "document.getElementById('generateReportBtn').addEventListener('click', ()=>{\n  if(!blockUntilArrival()) return;\n  const store = getOutletName();");
-
-rep("document.getElementById('saveBtn').addEventListener('click', ()=>{",
-    "document.getElementById('saveBtn').addEventListener('click', ()=>{\n  if(!blockUntilArrival()) return;");
-
-# Add arrival evidence block after GPS report row
-rep('<div class="report-row"><span>GPS</span><span>${r.gps ?',
-    '<div class="report-row"><span>GPS</span><span>${r.gps ?')
-# add after the exact closing GPS row if present
-rep('`${r.gps}` : \'—\'}</span></div>\n     </div>',
-    '`${r.gps}` : \'—\'}</span></div>\n       <div class="report-row"><span>Outside/front photo</span><span>${r.arrivalPhoto ? \'Captured\' : \'Missing\'}</span></div>\n     </div>');
-
-# Normalize selected outlet change: add resetArrivalPhoto at handler beginning/end
-rep("document.getElementById('outletSelect').addEventListener('change', ()=>{",
-    "document.getElementById('outletSelect').addEventListener('change', ()=>{\n  resetArrivalPhoto();");
-
-# Duplicate protection for Add Outlet
-rep("const name = document.getElementById('newOutletName').value.trim();",
-    "const name = document.getElementById('newOutletName').value.trim();\n  if(outlets.some(o=>(o.name||'').trim().toLowerCase()===name.toLowerCase())){document.getElementById('addOutletStatus').textContent='⚠️ This outlet already exists.';return;}");
-
-# Update GPS success if exact phrase exists
-rep("document.getElementById('gpsStatus').textContent = 'GPS captured';",
-    "document.getElementById('gpsStatus').textContent = 'GPS captured';\n      updateArrivalGate();");
-
-# Type in schedule
-rep("${o.name}</label>", "${o.name} <span class=\"manage-type\">${o.type||'Family'}</span></label>");
-
-# final status
-if(changes<8){
-  status('Only '+changes+' updates matched. Please do not replace your file — send me the current index.html.');
-  return;
+async function loadOutlets(){
+try{
+const res = storageGet('outlet-directory');
+outlets = res ? JSON.parse(res.value) : DEFAULT_STORES.slice();
+if(!res){
+storageSet('outlet-directory', JSON.stringify(outlets));
 }
-const blob=new Blob([s],{type:'text/html'});
-const a=document.createElement('a');
-a.href=URL.createObjectURL(blob);
-a.download='index_UPDATED.html';
-a.click();
-setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-status('Done. Downloaded index_UPDATED.html. Upload that file to your GitHub repository.');
+}catch(err){
+outlets = DEFAULT_STORES.slice();
+}
+
+let added = false;
+OUTLETS_TO_ENSURE.forEach(name=>{
+if(!outlets.some(o => o.name === name)){
+outlets.push({name, address:'', lat:'', lng:''});
+added = true;
+}
+});
+if(added){
+storageSet('outlet-directory', JSON.stringify(outlets));
+}
+
+renderOutletSelect();
+renderScheduleEditor();
+}
+function renderOutletSelect(){
+const sel = document.getElementById('outletSelect');
+const current = sel.value;
+sel.innerHTML = '<option value="">Select outlet...</option>' +
+outlets.map((o,i)=><option value="${i}">${o.name}</option>).join('') +
+'<option value="__manual">Enter manually</option>';
+if(current) sel.value = current;
+}
+document.getElementById('outletSelect').addEventListener('change', function(){
+const v = this.value;
+const manual = document.getElementById('outletManual');
+manual.style.display = v === '__manual' ? 'block' : 'none';
+if(v !== '' && v !== '__manual'){
+const o = outlets[+v];
+document.getElementById('outletAddress').value = o.address || '';
+if(o.lat && o.lng){
+document.getElementById('gpsLat').value = o.lat;
+document.getElementById('gpsLng').value = o.lng;
+document.getElementById('gpsStatus').innerHTML = 'GPS loaded from outlet list. <a class="map-link" target="_blank" href="https://www.google.com/maps?q='+o.lat+','+o.lng+'">Open in Google Maps</a>';
+}
+}
+});
+document.getElementById('addOutletBtn').addEventListener('click', async ()=>{
+const name = document.getElementById('newOutletName').value.trim();
+const statusEl = document.getElementById('addOutletStatus');
+if(!name){ statusEl.textContent = 'Enter an outlet name.'; return; }
+const newOutlet = {
+name,
+address: document.getElementById('newOutletAddress').value.trim(),
+lat: document.getElementById('newOutletLat').value,
+lng: document.getElementById('newOutletLng').value
 };
-</script>
-</body>
+outlets.push(newOutlet);
+try{
+storageSet('outlet-directory', JSON.stringify(outlets));
+statusEl.textContent = 'Outlet added to list.';
+}catch(err){
+statusEl.textContent = 'Could not save outlet — try again.';
+}
+renderOutletSelect();
+renderScheduleEditor();
+document.getElementById('newOutletName').value = '';
+document.getElementById('newOutletAddress').value = '';
+document.getElementById('newOutletLat').value = '';
+document.getElementById('newOutletLng').value = '';
+});
+
+// --- new: distance-based auto outlet detection ---
+function haversineMeters(lat1, lng1, lat2, lng2){
+const R = 6371000;
+const toRad = d => d * Math.PI / 180;
+const dLat = toRad(lat2 - lat1);
+const dLng = toRad(lng2 - lng1);
+const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+const AUTO_DETECT_RADIUS_M = 300; // how close you must be to auto-select an outlet
+
+// --- new: learn/refine an outlet's saved GPS from a real, on-site capture ---
+function learnOutletGPS(idx, lat, lng){
+if(!outlets[idx]) return;
+outlets[idx].lat = lat;
+outlets[idx].lng = lng;
+storageSet('outlet-directory', JSON.stringify(outlets));
+}
+
+function autoDetectOutlet(lat, lng){
+const statusEl = document.getElementById('gpsStatus');
+let nearest = null, nearestDist = Infinity;
+outlets.forEach((o, i)=>{
+if(o.lat && o.lng){
+const d = haversineMeters(lat, lng, parseFloat(o.lat), parseFloat(o.lng));
+if(d < nearestDist){ nearestDist = d; nearest = i; }
+}
+});
+
+const mapLink = <a class="map-link" target="_blank" href="https://www.google.com/maps?q=${lat},${lng}">Open in Google Maps</a>;
+
+if(nearest !== null && nearestDist <= AUTO_DETECT_RADIUS_M){
+const sel = document.getElementById('outletSelect');
+sel.value = String(nearest);
+sel.dispatchEvent(new Event('change'));
+learnOutletGPS(nearest, lat, lng);
+statusEl.innerHTML = 📍 Detected outlet: <strong>${outlets[nearest].name}</strong> (${Math.round(nearestDist)}m away). ${mapLink};
+}else if(nearest !== null){
+statusEl.innerHTML = GPS captured. Nearest saved outlet is <strong>${outlets[nearest].name}</strong>, but it's ${Math.round(nearestDist)}m away — too far to auto-select. Choose manually if needed. ${mapLink};
+}else{
+statusEl.innerHTML = GPS captured, but no saved outlets have coordinates to compare against yet. ${mapLink};
+}
+}
+
+function requestGPS(){
+const statusEl = document.getElementById('gpsStatus');
+if(!navigator.geolocation){
+statusEl.textContent = 'GPS is not supported on this device/browser.';
+return;
+}
+statusEl.textContent = 'Requesting location access...';
+navigator.geolocation.getCurrentPosition(pos=>{
+const lat = pos.coords.latitude.toFixed(6), lng = pos.coords.longitude.toFixed(6);
+document.getElementById('gpsLat').value = lat;
+document.getElementById('gpsLng').value = lng;
+
+const sel = document.getElementById('outletSelect');    
+if(sel.value !== '' && sel.value !== '__manual'){    
+  const idx = +sel.value;    
+  learnOutletGPS(idx, lat, lng);    
+  const mapLink = `<a class="map-link" target="_blank" href="https://www.google.com/maps?q=${lat},${lng}">Open in Google Maps</a>`;    
+  statusEl.innerHTML = `📍 GPS captured and saved for <strong>${outlets[idx].name}</strong>. Future visits nearby will auto-detect it. ${mapLink}`;    
+}else{    
+  autoDetectOutlet(parseFloat(lat), parseFloat(lng));    
+}
+
+}, err=>{
+if(err.code === 1){
+statusEl.textContent = 'Location access denied. Tap the site info icon (🔒 or ⓘ) next to the address bar in Chrome → Permissions → Location → Allow, then tap Capture again.';
+}else if(err.code === 3){
+statusEl.textContent = 'Location request timed out. Make sure GPS/location is turned on, then try again.';
+}else{
+statusEl.textContent = 'Unable to capture GPS. Allow location permission and try again.';
+}
+}, {enableHighAccuracy:true, timeout:15000, maximumAge:0});
+}
+document.getElementById('captureGpsBtn').addEventListener('click', requestGPS);
+// Ask for location access as soon as the page opens, so the browser prompt appears right away
+window.addEventListener('load', requestGPS);
+
+document.getElementById('visitDate').value = new Date().toISOString().slice(0,10);
+
+// --- yes/no groups ---
+let ynState = {};
+document.querySelectorAll('.yn[data-key]').forEach(group=>{
+group.addEventListener('click', e=>{
+const btn = e.target.closest('button[data-v]');
+if(!btn) return;
+const key = group.dataset.key;
+ynState[key] = btn.dataset.v;
+group.querySelectorAll('button').forEach(b=>b.classList.remove('sel-yes','sel-no'));
+btn.classList.add(btn.dataset.v==='yes' ? 'sel-yes':'sel-no');
+group.classList.remove('field-missing');
+});
+});
+function resetYN(){
+ynState = {};
+document.querySelectorAll('.yn[data-key] button').forEach(b=>b.classList.remove('sel-yes','sel-no'));
+}
+
+// --- photos (camera-only capture) ---
+let photoState = {shelf:null, freezer:null, promo:null, competitor:null};
+function wirePhotoBox(boxEl){
+boxEl.addEventListener('change', function(e){
+if(!(e.target && e.target.type === 'file')) return;
+const file = e.target.files[0];
+if(!file) return;
+const reader = new FileReader();
+reader.onload = function(ev){
+photoState[boxEl.dataset.photoKey] = ev.target.result;
+boxEl.innerHTML = <img src="${ev.target.result}">     <label class="photo-btn"><span>📷</span>Retake<input type="file" accept="image/*" capture="environment" class="hidden-file"></label>;
+};
+reader.readAsDataURL(file);
+});
+}
+document.querySelectorAll('.photo-box[data-photo-key]').forEach(wirePhotoBox);
+function resetPhotos(){
+photoState = {shelf:null, freezer:null, promo:null, competitor:null};
+document.querySelectorAll('.photo-box[data-photo-key]').forEach(box=>{
+box.innerHTML = <span>No photo yet</span><br><label class="photo-btn"><span>📷</span>Take Photo<input type="file" accept="image/*" capture="environment" class="hidden-file"></label>;
+});
+}
+
+// --- price diff live calc ---
+function updatePriceDiff(){
+const myPrice = parseFloat(document.getElementById('myPrice').value);
+const compPrice = parseFloat(document.getElementById('compPrice').value);
+const el = document.getElementById('priceDiffDisplay');
+if(isNaN(myPrice) || isNaN(compPrice)){ el.textContent = 'Price difference: —'; return; }
+const diff = (myPrice - compPrice).toFixed(2);
+const dir = diff > 0 ? 'more expensive than competitor' : (diff < 0 ? 'cheaper than competitor' : 'same as competitor');
+el.textContent = Price difference: R${Math.abs(diff)} (${dir});
+}
+document.getElementById('myPrice').addEventListener('input', updatePriceDiff);
+document.getElementById('compPrice').addEventListener('input', updatePriceDiff);
+
+// --- Execution score ---
+function calcScore(){
+const parts = [];
+const avail = parseFloat(document.getElementById('availabilityPct').value);
+if(!isNaN(avail)) parts.push(avail);
+if(ynState.oosYN) parts.push(ynState.oosYN === 'no' ? 100 : 0);
+if(ynState.eyeLevelYN) parts.push(ynState.eyeLevelYN === 'yes' ? 100 : 0);
+const visGP = document.getElementById('visibilityGP').value;
+if(visGP) parts.push(visGP === 'Good' ? 100 : 0);
+if(ynState.secondaryDisplayYN) parts.push(ynState.secondaryDisplayYN === 'yes' ? 100 : 0);
+if(ynState.posMaterialYN) parts.push(ynState.posMaterialYN === 'yes' ? 100 : 0);
+const shelf = document.getElementById('shelfSpace').value;
+if(shelf) parts.push(shelf === 'Good' ? 100 : shelf === 'Average' ? 50 : 0);
+
+const badge = document.getElementById('scoreBadge');
+const big = document.getElementById('scoreBig');
+const label = document.getElementById('scoreLabel');
+badge.classList.remove('high','medium','low');
+big.classList.remove('high','medium','low');
+
+if(parts.length === 0){
+badge.textContent = 'Score: --%';
+big.textContent = '--%';
+label.textContent = 'Execution Score (fill in Stock & Display to calculate)';
+return null;
+}
+const score = Math.round(parts.reduce((a,b)=>a+b,0) / parts.length);
+const tier = score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low';
+const tierText = score >= 80 ? 'Strong execution' : score >= 60 ? 'Needs improvement' : 'Immediate action required';
+badge.textContent = 'Score: ' + score + '%';
+badge.classList.add(tier);
+big.textContent = score + '%';
+big.classList.add(tier);
+label.textContent = 'Execution Score — ' + tierText;
+return score;
+}
+['availabilityPct'].forEach(id=>document.getElementById(id).addEventListener('input', calcScore));
+['visibilityGP','shelfSpace'].forEach(id=>document.getElementById(id).addEventListener('change', calcScore));
+document.querySelectorAll('.yn[data-key]').forEach(g=>g.addEventListener('click', calcScore));
+
+// --- new: required-field validation before moving forward a tab ---
+const tabValidators = {
+outlet: () => {
+const errs = [];
+if(!getOutletName()) errs.push({id:'outletSelect', msg:'Select or enter an outlet name.'});
+if(!document.getElementById('gpsLat').value || !document.getElementById('gpsLng').value) errs.push({id:'captureGpsBtn', msg:'Capture GPS before continuing.'});
+return errs;
+},
+stock: () => {
+const errs = [];
+if(document.getElementById('availabilityPct').value === '') errs.push({id:'availabilityPct', msg:'Enter availability %.'});
+if(!ynState.oosYN) errs.push({id:'oosYN-group', msg:'Answer "Out of stock?".'});
+return errs;
+},
+pricing: () => {
+const errs = [];
+if(document.getElementById('myPrice').value === '') errs.push({id:'myPrice', msg:'Enter your product price.'});
+return errs;
+},
+display: () => {
+const errs = [];
+if(!ynState.eyeLevelYN) errs.push({id:'eyeLevelYN-group', msg:'Answer "Eye level?".'});
+if(!document.getElementById('visibilityGP').value) errs.push({id:'visibilityGP', msg:'Select visibility.'});
+if(!document.getElementById('shelfSpace').value) errs.push({id:'shelfSpace', msg:'Select shelf space.'});
+return errs;
+},
+customer: () => {
+const errs = [];
+if(!ynState.spokeToYN) errs.push({id:'spokeToYN-group', msg:'Answer "Buyer/manager spoken to?".'});
+return errs;
+},
+orders: () => {
+const errs = [];
+if(!ynState.orderPlaced) errs.push({id:'orderPlaced-group', msg:'Answer "Order placed?".'});
+return errs;
+}
+};
+
+function validateTabBeforeLeaving(tabKey){
+const validator = tabValidators[tabKey];
+if(!validator) return true;
+document.querySelectorAll('.field-missing').forEach(el=>el.classList.remove('field-missing'));
+const errs = validator();
+if(errs.length === 0) return true;
+errs.forEach(e=>{
+const el = document.getElementById(e.id);
+if(el) el.classList.add('field-missing');
+});
+const first = document.getElementById(errs[0].id);
+if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
+alert('Please complete before moving on:\n\n' + errs.map(e=>'• '+e.msg).join('\n'));
+return false;
+}
+
+// --- horizontal tab nav (now with forward-navigation validation) ---
+const FORM_TAB_ORDER = ['outlet','stock','competitor','pricing','display','customer','orders','evidence','notes'];
+
+function switchToTab(targetTab){
+document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active', b.dataset.tab === targetTab));
+document.querySelectorAll('.tab').forEach(sec=>sec.classList.toggle('active', sec.id === 'tab-' + targetTab));
+document.getElementById('saveBar').classList.toggle('hidden', targetTab === 'log' || targetTab === 'dashboard' || targetTab === 'schedule');
+const btn = document.querySelector(.tabBtn[data-tab="${targetTab}"]);
+if(btn) btn.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+if(targetTab === 'log') renderLog();
+if(targetTab === 'dashboard') renderDashboard();
+}
+
+document.querySelectorAll('.tabBtn').forEach(btn=>{
+btn.addEventListener('click', ()=>{
+const currentBtn = document.querySelector('.tabBtn.active');
+const currentTab = currentBtn ? currentBtn.dataset.tab : null;
+const targetTab = btn.dataset.tab;
+
+const curIdx = FORM_TAB_ORDER.indexOf(currentTab);    
+const tgtIdx = FORM_TAB_ORDER.indexOf(targetTab);    
+
+if(curIdx !== -1 && tgtIdx !== -1 && tgtIdx > curIdx){    
+  if(!validateTabBeforeLeaving(currentTab)) return;    
+}    
+
+switchToTab(targetTab);    
+if(targetTab === 'outlet') requestGPS();
+
+});
+});
+
+// --- new: tapping a pending/missed outlet on Today's Route jumps straight into the visit form ---
+function goToOutletFromRoute(name){
+const idxFound = outlets.findIndex(o => o.name === name);
+const sel = document.getElementById('outletSelect');
+if(idxFound !== -1){
+sel.value = String(idxFound);
+sel.dispatchEvent(new Event('change'));
+}else{
+sel.value = '__manual';
+document.getElementById('outletManual').style.display = 'block';
+document.getElementById('outletManual').value = name;
+}
+switchToTab('outlet');
+}
+
+async function renderLog(){
+const listEl = document.getElementById('logList');
+listEl.innerHTML = '<div class="empty">Loading...</div>';
+try{
+const idx = storageGet('visit-index');
+const visits = idx ? JSON.parse(idx.value) : [];
+if(visits.length === 0){ listEl.innerHTML = '<div class="empty">No visits logged yet.</div>'; return; }
+listEl.innerHTML = '';
+visits.slice().reverse().forEach(v=>{
+const item = document.createElement('div');
+item.className = 'log-item' + (v.oosYN === 'yes' ? ' oos' : '');
+let extra = '';
+if(v.score !== null && v.score !== undefined) extra += <div class="row">Score: ${v.score}%</div>;
+if(v.orderPlaced) extra += <div class="row">Order placed: ${v.orderPlaced}</div>;
+if(v.oosYN === 'yes') extra += <div class="row">⚠️ Out of stock</div>;
+if(v.compBrand) extra += <div class="row">Competitor: ${v.compBrand}</div>;
+if(v.gps) extra += <div class="row">📍 ${v.gps}</div>;
+if(v.nextMeeting) extra += <div class="row">Next meeting: ${v.nextMeeting}</div>;
+item.innerHTML = <div class="store">${v.store}</div>     <div class="date">${new Date(v.date).toLocaleString()}</div>     <div class="summary">${v.summary || 'No notes'}</div>${extra};
+listEl.appendChild(item);
+});
+}catch(err){
+listEl.innerHTML = '<div class="empty">Could not load visit log.</div>';
+}
+}
+
+// --- new: weekly schedule ---
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+let weeklySchedule = {};
+
+function loadWeeklySchedule(){
+try{
+const res = storageGet('weekly-schedule');
+weeklySchedule = res ? JSON.parse(res.value) : {};
+}catch(e){ weeklySchedule = {}; }
+}
+
+function renderScheduleEditor(){
+const container = document.getElementById('scheduleDayList');
+if(!container) return;
+container.innerHTML = DAYS.map(day=>{
+const selected = weeklySchedule[day] || [];
+const options = outlets.map(o=>{
+const checked = selected.includes(o.name) ? 'checked' : '';
+return <label>     <input type="checkbox" class="schedule-check" data-day="${day}" value="${o.name}" ${checked}>     ${o.name}     </label>;
+}).join('');
+return <div class="schedule-day-block">     <label class="field-label">${day}</label>     <div class="schedule-options">${options}</div>     </div>;
+}).join('');
+}
+
+document.getElementById('saveScheduleBtn').addEventListener('click', ()=>{
+const newSchedule = {};
+document.querySelectorAll('.schedule-check:checked').forEach(cb=>{
+const day = cb.dataset.day;
+if(!newSchedule[day]) newSchedule[day] = [];
+newSchedule[day].push(cb.value);
+});
+weeklySchedule = newSchedule;
+storageSet('weekly-schedule', JSON.stringify(weeklySchedule));
+document.getElementById('scheduleStatus').textContent = 'Weekly schedule saved.';
+renderTodayRoute();
+});
+
+const MISSED_CUTOFF_HOUR = 17; // outlets not visited by this hour flip to "Missed"
+
+function renderTodayRoute(){
+const el = document.getElementById('todayRouteList');
+if(!el) return;
+const now = new Date();
+const todayName = DAYS[now.getDay()];
+const todaysOutlets = weeklySchedule[todayName] || [];
+if(todaysOutlets.length === 0){
+el.innerHTML = '<div class="report-empty">No outlets scheduled for '+todayName+'. Set them up in the Weekly Schedule tab.</div>';
+return;
+}
+const idx = storageGet('visit-index');
+const visits = idx ? JSON.parse(idx.value) : [];
+const todayStr = now.toISOString().slice(0,10);
+const visitedToday = new Set(visits.filter(v => (v.date || '').slice(0,10) === todayStr).map(v => v.store));
+const pastCutoff = now.getHours() >= MISSED_CUTOFF_HOUR;
+
+el.innerHTML = todaysOutlets.map(name=>{
+const done = visitedToday.has(name);
+let cls, text;
+if(done){ cls = 'done'; text = '✅ Completed'; }
+else if(pastCutoff){ cls = 'missed'; text = '❌ Missed'; }
+else{ cls = 'pending'; text = '⏳ Pending'; }
+return <div class="log-item route-item ${done ? '' : 'oos'}" data-outlet-name="${name}" style="${done ? '' : 'cursor:pointer;'}">     <span>${name}</span>     <span class="route-status ${cls}">${text}</span>     </div>;
+}).join('');
+
+el.querySelectorAll('.route-item').forEach(item=>{
+if(item.classList.contains('oos')){
+item.addEventListener('click', ()=> goToOutletFromRoute(item.dataset.outletName));
+}
+});
+}
+document.getElementById('syncRouteBtn').addEventListener('click', ()=>{ renderTodayRoute(); renderMissedHistory(); });
+
+function renderMissedHistory(){
+const el = document.getElementById('missedHistoryList');
+if(!el) return;
+const idx = storageGet('visit-index');
+const visits = idx ? JSON.parse(idx.value) : [];
+const visitedByDate = {};
+visits.forEach(v=>{
+const d = (v.date || '').slice(0,10);
+if(!d) return;
+if(!visitedByDate[d]) visitedByDate[d] = new Set();
+visitedByDate[d].add(v.store);
+});
+
+const missed = [];
+for(let i = 1; i <= 6; i++){
+const d = new Date();
+d.setDate(d.getDate() - i);
+const dayName = DAYS[d.getDay()];
+const dateStr = d.toISOString().slice(0,10);
+const scheduled = weeklySchedule[dayName] || [];
+const visitedSet = visitedByDate[dateStr] || new Set();
+scheduled.forEach(name=>{
+if(!visitedSet.has(name)){
+missed.push({name, dateStr, dayName});
+}
+});
+}
+
+if(missed.length === 0){
+el.innerHTML = '<div class="report-empty">No missed outlets in the last 7 days.</div>';
+return;
+}
+el.innerHTML = missed.map(m=>`<div class="log-item route-item oos">
+<span>${m.name}</span>
+<span class="route-status missed">❌ Missed — ${m.dayName} ${m.dateStr}</span>
+
+  </div>`).join('');    
+}    async function renderDashboard(){
+const kpiVisits = document.getElementById('kpiVisits');
+const kpiAvail = document.getElementById('kpiAvail');
+const kpiScore = document.getElementById('kpiScore');
+const kpiOpp = document.getElementById('kpiOpp');
+const recentEl = document.getElementById('dashboardRecent');
+recentEl.innerHTML = '<div class="empty">Loading...</div>';
+
+renderTodayRoute();
+renderMissedHistory();
+
+try{
+const idx = storageGet('visit-index');
+const visits = idx ? JSON.parse(idx.value) : [];
+
+kpiVisits.textContent = visits.length;    
+
+const availVals = visits.map(v=>parseFloat(v.availabilityPct)).filter(n=>!isNaN(n));    
+kpiAvail.textContent = availVals.length ? Math.round(availVals.reduce((a,b)=>a+b,0)/availVals.length) + '%' : '--%';    
+
+const scoreVals = visits.map(v=>v.score).filter(n=>n !== null && n !== undefined && !isNaN(n));    
+kpiScore.textContent = scoreVals.length ? Math.round(scoreVals.reduce((a,b)=>a+b,0)/scoreVals.length) + '%' : '--%';    
+
+kpiOpp.textContent = scoreVals.filter(s=>s>=80).length;    
+
+if(visits.length === 0){    
+  recentEl.innerHTML = '<div class="empty">No visits logged yet.</div>';    
+  return;    
+}    
+recentEl.innerHTML = '';    
+visits.slice().reverse().slice(0,5).forEach(v=>{    
+  const item = document.createElement('div');    
+  item.className = 'log-item' + (v.oosYN === 'yes' ? ' oos' : '');    
+  let extra = '';    
+  if(v.score !== null && v.score !== undefined) extra += `<div class="row">Score: ${v.score}%</div>`;    
+  if(v.gps) extra += `<div class="row">📍 ${v.gps}</div>`;    
+  item.innerHTML = `<div class="store">${v.store}</div>    
+    <div class="date">${new Date(v.date).toLocaleString()}</div>    
+    <div class="summary">${v.summary || 'No notes'}</div>${extra}`;    
+  recentEl.appendChild(item);    
+});
+
+}catch(err){
+recentEl.innerHTML = '<div class="empty">Could not load dashboard.</div>';
+}
+}
+
+function scoreTier(score){
+if(score === null || score === undefined || isNaN(score)) return '';
+return score >= 80 ? 'high' : score >= 60 ? 'medium' : 'low';
+}
+
+document.getElementById('generateReportBtn').addEventListener('click', ()=>{
+const store = getOutletName();
+const out = document.getElementById('reportOutput');
+if(!store){
+out.innerHTML = '<div class="report-empty">Pick or enter an outlet name on the Outlet & GPS tab first.</div>';
+return;
+}
+const r = buildRecord(store, 'preview');
+const tier = scoreTier(r.score);
+
+const photos = [
+r.shelfPhoto ? {label:'Shelf', src:r.shelfPhoto} : null,
+r.freezerPhoto ? {label:'Freezer', src:r.freezerPhoto} : null,
+r.promoPhoto ? {label:'Promotion / Display', src:r.promoPhoto} : null,
+r.competitorPhoto ? {label:'Competitor', src:r.competitorPhoto} : null
+].filter(Boolean);
+
+out.innerHTML = `
+<div class="score-card" style="margin-bottom:16px;">
+<div class="big ${tier}">${r.score !== null ? r.score + '%' : '--%'}</div>
+<div class="label">Execution Score</div>
+</div>
+
+<div class="report-block">    
+  <h3>${r.store}</h3>    
+  <div class="report-row"><span>Visit date</span><span>${r.visitDate || '—'}</span></div>    
+  <div class="report-row"><span>Address</span><span>${r.address || '—'}</span></div>    
+  <div class="report-row"><span>GPS</span><span>${r.gps ? `<a class="map-link" target="_blank" href="https://www.google.com/maps?q=${r.gpsLat},${r.gpsLng}">${r.gps}</a>` : '—'}</span></div>    
+</div>    
+
+<div class="report-block">    
+  <h3>Stock &amp; Pricing</h3>    
+  <div class="report-row"><span>My qty on shelf</span><span>${r.myQty || '—'}</span></div>    
+  <div class="report-row"><span>Availability</span><span>${r.availabilityPct ? r.availabilityPct+'%' : '—'}</span></div>    
+  <div class="report-row"><span>Out of stock</span><span>${r.oosYN}</span></div>    
+  <div class="report-row"><span>My price</span><span>${r.myPrice ? 'R'+r.myPrice : '—'}</span></div>    
+</div>    
+
+<div class="report-block">    
+  <h3>Competitor</h3>    
+  <div class="report-row"><span>Brand</span><span>${r.compBrand || '—'}</span></div>    
+  <div class="report-row"><span>Price</span><span>${r.compPrice ? 'R'+r.compPrice : '—'}</span></div>    
+  <div class="report-row"><span>Visibility vs ours</span><span>${r.visibilityVs || '—'}</span></div>    
+</div>    
+
+<div class="report-block">    
+  <h3>Orders &amp; Follow-up</h3>    
+  <div class="report-row"><span>Order placed</span><span>${r.orderPlaced}</span></div>    
+  <div class="report-row"><span>Cases ordered</span><span>${r.casesOrdered || '—'}</span></div>    
+  <div class="report-row"><span>Est. opportunity</span><span>${r.estimatedOpportunity ? 'R'+r.estimatedOpportunity : '—'}</span></div>    
+  <div class="report-row"><span>Next meeting</span><span>${r.nextMeeting || '—'}</span></div>    
+  <div class="report-row"><span>Action required</span><span>${r.actionRequired || '—'}</span></div>    
+</div>    
+
+${r.extraNotes ? `<div class="report-block"><h3>Notes</h3><p style="font-size:13px;">${r.extraNotes}</p></div>` : ''}    
+
+${photos.length ? `<div class="report-block"><h3>Photos</h3><div class="report-photos">    
+  ${photos.map(p=>`<div><img src="${p.src}"><div style="font-size:11px;color:#8A7860;text-align:center;margin-top:2px;">${p.label}</div></div>`).join('')}    
+</div></div>` : ''}
+
+`;
+});
+
+function nextBusinessDay(fromDate){
+const d = new Date(fromDate);
+d.setDate(d.getDate() + 1);
+while(d.getDay() === 0 || d.getDay() === 6){ d.setDate(d.getDate() + 1); }
+d.setHours(0,0,0,0);
+return d;
+}
+
+function getOutletName(){
+const outletSel = document.getElementById('outletSelect').value;
+return outletSel === '__manual'
+? document.getElementById('outletManual').value.trim()
+: (outletSel !== '' ? outlets[+outletSel].name : '');
+}
+
+function buildRecord(store, id){
+const orderNotes = document.getElementById('orderNotes').value.trim();
+const nextMeetingDate = document.getElementById('nextMeetingDate').value;
+const nextMeetingTime = document.getElementById('nextMeetingTime').value;
+const nextMeeting = nextMeetingDate ? (nextMeetingDate + (nextMeetingTime ? ' ' + nextMeetingTime : '')) : null;
+const gpsLat = document.getElementById('gpsLat').value;
+const gpsLng = document.getElementById('gpsLng').value;
+const gps = (gpsLat && gpsLng) ? ${gpsLat}, ${gpsLng} : null;
+
+return {
+id, store,
+address: document.getElementById('outletAddress').value.trim(),
+gpsLat, gpsLng, gps,
+visitDate: document.getElementById('visitDate').value,
+date: new Date().toISOString(),
+
+myQty: document.getElementById('myQty').value,    
+availabilityPct: document.getElementById('availabilityPct').value,    
+oosYN: ynState.oosYN || 'not answered',    
+oosReason: document.getElementById('oosReason').value.trim(),    
+damagedYN: ynState.damagedYN || 'not answered',    
+
+compBrand: document.getElementById('compBrand').value.trim(),    
+compQty: document.getElementById('compQty').value,    
+compPrice: document.getElementById('compPrice').value,    
+compPosition: document.getElementById('compPosition').value.trim(),    
+compPromoYN: ynState.compPromoYN || 'not answered',    
+visibilityVs: document.getElementById('visibilityVs').value,    
+competitorPhoto: photoState.competitor,    
+
+myPrice: document.getElementById('myPrice').value,    
+
+myPromoYN: ynState.myPromoYN || 'not answered',    
+promoType: document.getElementById('promoType').value,    
+
+eyeLevelYN: ynState.eyeLevelYN || 'not answered',    
+visibilityGP: document.getElementById('visibilityGP').value,    
+secondaryDisplayYN: ynState.secondaryDisplayYN || 'not answered',    
+posMaterialYN: ynState.posMaterialYN || 'not answered',    
+shelfSpace: document.getElementById('shelfSpace').value,    
+
+spokeToYN: ynState.spokeToYN || 'not answered',    
+customerFeedback: document.getElementById('customerFeedback').value.trim(),    
+opportunityNotes: document.getElementById('opportunityNotes').value.trim(),    
+
+orderPlaced: ynState.orderPlaced || 'not answered',    
+casesOrdered: document.getElementById('casesOrdered').value,    
+estimatedOpportunity: document.getElementById('estimatedOpportunity').value,    
+potentialNextOrder: document.getElementById('potentialNextOrder').value.trim(),    
+lastOrderDate: document.getElementById('lastOrderDate').value,    
+deliveryDate: document.getElementById('deliveryDate').value,    
+lastDeliveredYN: ynState.lastDeliveredYN || 'not answered',    
+orderNotes,    
+
+nextMeeting,    
+actionRequired: document.getElementById('actionRequired').value.trim(),    
+followUpOwner: document.getElementById('followUpOwner').value.trim(),    
+
+shelfPhoto: photoState.shelf,    
+freezerPhoto: photoState.freezer,    
+promoPhoto: photoState.promo,    
+
+extraNotes: document.getElementById('extraNotes').value.trim(),    
+score: calcScore()
+
+};
+}
+
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+const store = getOutletName();
+const status = document.getElementById('statusMsg');
+if(!store){ status.textContent = 'Pick or enter an outlet name first.'; return; }
+
+const saveBtn = document.getElementById('saveBtn');
+saveBtn.disabled = true;
+status.textContent = 'Saving...';
+
+const id = 'v' + Date.now();
+const record = buildRecord(store, id);
+const orderNotes = record.orderNotes;
+const gps = record.gps;
+
+try{
+storageSet('visit:'+id, JSON.stringify(record));
+
+const idxResult = storageGet('visit-index');    
+const visits = idxResult ? JSON.parse(idxResult.value) : [];    
+visits.push({    
+  id, store, date: record.date, gps,    
+  orderPlaced: record.orderPlaced,    
+  oosYN: record.oosYN,    
+  compBrand: record.compBrand,    
+  nextMeeting: record.nextMeeting,    
+  score: record.score,    
+  availabilityPct: record.availabilityPct,    
+  summary: orderNotes || record.extraNotes || 'Visit logged'    
+});    
+storageSet('visit-index', JSON.stringify(visits));    
+
+if(orderNotes){    
+  const remResult = storageGet('reminders');    
+  const reminders = remResult ? JSON.parse(remResult.value) : [];    
+  reminders.push({    
+    id: 'r' + Date.now(), store, comment: orderNotes,    
+    createdDate: new Date().toISOString(),    
+    dueDate: nextBusinessDay(new Date()).toISOString()    
+  });    
+  storageSet('reminders', JSON.stringify(reminders));    
+}    
+
+status.textContent = 'Visit saved.';    
+document.getElementById('outletSelect').value = '';    
+document.getElementById('outletManual').style.display = 'none';    
+document.getElementById('outletManual').value = '';    
+['outletAddress','gpsLat','gpsLng','myQty','availabilityPct','oosReason','compBrand','compQty','compPrice','compPosition',    
+ 'myPrice','casesOrdered','estimatedOpportunity','potentialNextOrder','lastOrderDate',    
+ 'deliveryDate','actionRequired','followUpOwner','nextMeetingDate','nextMeetingTime',    
+ 'orderNotes','customerFeedback','opportunityNotes','extraNotes'].forEach(fid=>{    
+   document.getElementById(fid).value = '';    
+ });    
+['visibilityVs','promoType','visibilityGP','shelfSpace'].forEach(fid=>{ document.getElementById(fid).value = ''; });    
+document.getElementById('priceDiffDisplay').textContent = 'Price difference: —';    
+document.getElementById('gpsStatus').textContent = 'No GPS captured yet.';    
+resetYN();    
+resetPhotos();    
+calcScore();    
+renderTodayRoute();
+
+}catch(err){
+status.textContent = 'Save failed — try again.';
+}
+saveBtn.disabled = false;
+});
+
+async function checkReminders(){
+try{
+const remResult = storageGet('reminders');
+if(!remResult) return;
+const reminders = remResult ? JSON.parse(remResult.value) : [];
+if(reminders.length === 0) return;
+const now = new Date();
+const due = reminders.filter(r => new Date(r.dueDate) <= now);
+const notYetDue = reminders.filter(r => new Date(r.dueDate) > now);
+if(due.length === 0) return;
+const listEl = document.getElementById('reminderList');
+listEl.innerHTML = '';
+due.forEach(r=>{
+const card = document.createElement('div');
+card.className = 'reminder-card';
+card.innerHTML = <div class="store">${r.store}</div><div class="comment">${r.comment}</div>;
+listEl.appendChild(card);
+});
+document.getElementById('reminderOverlay').classList.remove('hidden');
+document.getElementById('reminderClose').onclick = async ()=>{
+document.getElementById('reminderOverlay').classList.add('hidden');
+storageSet('reminders', JSON.stringify(notYetDue));
+};
+}catch(err){ /* fail silently */ }
+}
+
+loadWeeklySchedule();
+loadOutlets();
+checkReminders();
+renderDashboard();
+</script>  </body>
+
 </html>
