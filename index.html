@@ -19,7 +19,8 @@
     --shadow:0 2px 8px rgba(43,27,18,0.08);
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
+  html{overscroll-behavior-y: contain;}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior-y: contain;}
   header.app{background:var(--crust);color:var(--cream);padding:16px 16px 18px;position:sticky;top:0;z-index:6;border-bottom:4px solid var(--gold);}
   header.app h1{font-family:Georgia,"Times New Roman",serif;font-size:20px;margin:0 0 2px;}
   header.app small{opacity:.85;font-size:12px;}
@@ -256,7 +257,7 @@
       <h2>Stock on Hand</h2>
       <div class="two-col">
         <div><label class="field-label">My qty (cases/boxes)</label><input type="number" id="myQty" min="0"></div>
-        <div><label class="field-label">Availability %</label><input type="number" id="availabilityPct" min="0" max="100"></div>
+        <div><label class="field-label">Availability % <span style="font-weight:400;text-transform:none;">(auto-calculated)</span></label><input type="number" id="availabilityPct" min="0" max="100" readonly></div>
       </div>
       <label class="field-label">Out of stock?</label>
       <div class="yn" data-key="oosYN" id="oosYN-group"><button data-v="yes">Yes</button><button data-v="no">No</button></div>
@@ -783,6 +784,25 @@ function resetPhotos(){
   });
 }
 
+// --- new: availability % auto-calculated from qty on hand ---
+// Change this number to match what "full stock" actually means at your outlets.
+const FULL_STOCK_QTY = 20;
+
+function updateAvailabilityFromQty(){
+  const qtyEl = document.getElementById('myQty');
+  const pctEl = document.getElementById('availabilityPct');
+  const qty = parseFloat(qtyEl.value);
+  if(isNaN(qty) || qty < 0){
+    pctEl.value = '';
+  }else{
+    const pct = Math.min(100, Math.round((qty / FULL_STOCK_QTY) * 100));
+    pctEl.value = pct;
+  }
+  pctEl.classList.remove('field-missing');
+  calcScore();
+}
+document.getElementById('myQty').addEventListener('input', updateAvailabilityFromQty);
+
 // --- price diff live calc ---
 function updatePriceDiff(){
   const myPrice = parseFloat(document.getElementById('myPrice').value);
@@ -832,7 +852,7 @@ function calcScore(){
   label.textContent = 'Execution Score — ' + tierText;
   return score;
 }
-['availabilityPct'].forEach(id=>document.getElementById(id).addEventListener('input', calcScore));
+// (availability % is now driven by qty — see updateAvailabilityFromQty above, which also triggers calcScore)
 ['visibilityGP','shelfSpace'].forEach(id=>document.getElementById(id).addEventListener('change', calcScore));
 document.querySelectorAll('.yn[data-key]').forEach(g=>g.addEventListener('click', calcScore));
 
@@ -847,7 +867,7 @@ const tabValidators = {
   },
   stock: () => {
     const errs = [];
-    if(document.getElementById('availabilityPct').value === '') errs.push({id:'availabilityPct', msg:'Enter availability %.'});
+    if(document.getElementById('myQty').value === '') errs.push({id:'myQty', msg:'Enter your quantity on hand (cases/boxes).'});
     if(!ynState.oosYN) errs.push({id:'oosYN-group', msg:'Answer "Out of stock?".'});
     return errs;
   },
